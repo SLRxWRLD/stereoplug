@@ -1,0 +1,78 @@
+/**
+ * @name MicrophoneStereoPlugin
+ * @version 1.0.0
+ * @description Makes microphone audio stereo for BetterDiscord.
+ */
+
+module.exports = (() => {
+    const config = {
+        info: {
+            name: "SOLRStereo",
+            authors: [
+                {
+                    name: "SOLRxDelusions",
+                    discord_id: "1016550533995167744",
+                    github_username: "SOLRxWRLD"
+                }
+            ],
+            version: "1.0.0",
+            description: "Makes microphone audio stereo for BetterDiscord."
+        }
+    };
+
+    return class MicrophoneStereoPlugin {
+        constructor() {
+            this.audioContext = null;
+            this.microphoneStream = null;
+            this.stereoPanner = null;
+        }
+
+        getName() {
+            return config.info.name;
+        }
+
+        getAuthor() {
+            return config.info.authors.map(a => a.name).join(", ");
+        }
+
+        getVersion() {
+            return config.info.version;
+        }
+
+        getDescription() {
+            return config.info.description;
+        }
+
+        start() {
+            this.enableStereoMicrophone();
+        }
+
+        stop() {
+            this.disableStereoMicrophone();
+        }
+
+        async enableStereoMicrophone() {
+            try {
+                this.audioContext = new AudioContext();
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                this.microphoneStream = this.audioContext.createMediaStreamSource(stream);
+
+                this.stereoPanner = this.audioContext.createStereoPanner();
+                this.stereoPanner.pan.value = 0.5; // Adjust panning as needed
+
+                this.microphoneStream.connect(this.stereoPanner).connect(this.audioContext.destination);
+            } catch (error) {
+                console.error('Error accessing microphone:', error);
+            }
+        }
+
+        disableStereoMicrophone() {
+            if (this.audioContext) {
+                this.audioContext.close();
+                this.audioContext = null;
+                this.microphoneStream = null;
+                this.stereoPanner = null;
+            }
+        }
+    };
+})();
